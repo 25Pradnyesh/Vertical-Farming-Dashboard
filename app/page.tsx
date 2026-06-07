@@ -17,63 +17,60 @@ import {
   Sprout,
   FlaskConical,
   Droplets,
+  Waves,
 } from "lucide-react";
+
+import { ref, onValue } from "firebase/database";
+import { database } from "@/lib/firebase";
 
 export default function DashboardPage() {
 
-  // SENSOR DATA
   const [data, setData] = useState<any>(null);
-
-  // GRAPH DATA
   const [chartData, setChartData] = useState<any[]>([]);
-
-  // LOADING
   const [loading, setLoading] = useState(true);
 
-  // SIDEBAR
   const [sidebarOpen, setSidebarOpen] = useState(true);
-
-  // ACTIVE PAGE
   const [activePage, setActivePage] = useState("Dashboard");
 
   useEffect(() => {
 
-    const fetchData = () => {
-      fetch("http://localhost:5000/data")
-        .then((res) => res.json())
-        .then((sensorData) => {
+    const sensorRef = ref(database);
 
-          setData(sensorData);
+    onValue(sensorRef, (snapshot) => {
 
-          setChartData((prev) => [
-            ...prev.slice(-9),
-            {
-              time: new Date().toLocaleTimeString(),
+      const firebaseData = snapshot.val();
 
-              temperature: sensorData.temperature,
-              humidity: sensorData.humidity,
-              soil_moisture: sensorData.soil_moisture,
-              ph: sensorData.ph,
-              tds: sensorData.tds,
-            },
-          ]);
+      if (!firebaseData) return;
 
-          setLoading(false);
-        })
-        .catch((err) => {
-          console.error("Backend Error:", err);
-        });
-    };
+      const sensorData = {
+        temperature: firebaseData.Temperature?.value || 0,
+        humidity: firebaseData.Humidity?.value || 0,
+        soil_moisture: firebaseData.Moisture?.value || 0,
+        ph: firebaseData.PH?.value || 0,
+        tds: firebaseData.TDS?.value || 0,
+        pump: firebaseData.Pump?.status || "OFF",
+      };
 
-    fetchData();
+      setData(sensorData);
 
-    const interval = setInterval(fetchData, 3000);
+      setChartData((prev) => [
+  ...prev.slice(-9),
+  {
+    time: new Date().toLocaleTimeString(),
 
-    return () => clearInterval(interval);
+    temperature: sensorData.temperature,
+    humidity: sensorData.humidity,
+    soil_moisture: sensorData.soil_moisture,
+    ph: sensorData.ph,
+    tds: sensorData.tds,
+  },
+]);
+      setLoading(false);
+
+    });
 
   }, []);
 
-  // LOADING
   if (loading || !data) {
     return (
       <div className="h-screen flex items-center justify-center text-2xl font-bold">
@@ -83,6 +80,7 @@ export default function DashboardPage() {
   }
 
   return (
+
     <div className="min-h-screen bg-[#f8fafc] flex">
 
       {/* SIDEBAR */}
@@ -111,6 +109,7 @@ export default function DashboardPage() {
 
             {/* HEADER */}
             <div>
+
               <h2 className="text-3xl font-bold text-gray-900">
                 Dashboard
               </h2>
@@ -118,106 +117,209 @@ export default function DashboardPage() {
               <p className="text-gray-500 mt-1">
                 Real-time overview of your farm
               </p>
+
             </div>
 
             {/* KPI CARDS */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
 
-              <KPICard
-                title="Temperature"
-                value={data.temperature.toString()}
-                unit="°C"
-                status={data.temperature > 35 ? "High" : "Normal"}
-                statusColor={
-                  data.temperature > 35
-                    ? "text-red-500"
-                    : "text-green-500"
-                }
-                Icon={Thermometer}
-                iconColor="text-green-500"
-              />
+  {/* TEMPERATURE */}
+  <KPICard
+    title="Temperature"
+    value={data.temperature.toString()}
+    unit="°C"
 
-              <KPICard
-                title="Humidity"
-                value={data.humidity.toString()}
-                unit="%"
-                status="Normal"
-                statusColor="text-green-500"
-                Icon={Droplet}
-                iconColor="text-blue-500"
-              />
+    status={
+      data.temperature < 18
+        ? "Low"
+        : data.temperature > 30
+        ? "High"
+        : "Normal"
+    }
 
-              <KPICard
-                title="Soil Moisture"
-                value={data.soil_moisture.toString()}
-                unit="%"
-                status={
-                  data.soil_moisture < 40
-                    ? "Low"
-                    : "Normal"
-                }
-                statusColor={
-                  data.soil_moisture < 40
-                    ? "text-red-500"
-                    : "text-green-500"
-                }
-                Icon={Sprout}
-                iconColor="text-amber-700"
-              />
+    statusColor={
+      data.temperature < 18
+        ? "text-blue-500"
+        : data.temperature > 30
+        ? "text-red-500"
+        : "text-green-500"
+    }
 
-              <KPICard
-                title="Soil pH"
-                value={data.ph.toString()}
-                unit="pH"
-                status={
-                  data.ph < 6.5
-                    ? "Slightly Acidic"
-                    : "Normal"
-                }
-                statusColor={
-                  data.ph < 6.5
-                    ? "text-purple-500"
-                    : "text-green-500"
-                }
-                Icon={FlaskConical}
-                iconColor="text-purple-500"
-              />
+    Icon={Thermometer}
+    iconColor="text-green-500"
+  />
 
-              <KPICard
-                title="TDS"
-                value={data.tds.toString()}
-                unit="ppm"
-                status="Normal"
-                statusColor="text-green-500"
-                Icon={Droplets}
-                iconColor="text-teal-500"
-              />
+  {/* HUMIDITY */}
+  <KPICard
+    title="Humidity"
+    value={data.humidity.toString()}
+    unit="%"
 
-            </div>
+    status={
+      data.humidity < 40
+        ? "Low"
+        : data.humidity > 70
+        ? "High"
+        : "Normal"
+    }
+
+    statusColor={
+      data.humidity < 40
+        ? "text-yellow-500"
+        : data.humidity > 70
+        ? "text-red-500"
+        : "text-green-500"
+    }
+
+    Icon={Droplet}
+    iconColor="text-blue-500"
+  />
+
+  {/* SOIL MOISTURE */}
+  <KPICard
+    title="Soil Moisture"
+    value={data.soil_moisture.toString()}
+    unit="%"
+
+    status={
+      data.soil_moisture < 30
+        ? "Low"
+        : data.soil_moisture > 70
+        ? "High"
+        : "Normal"
+    }
+
+    statusColor={
+      data.soil_moisture < 30
+        ? "text-yellow-500"
+        : data.soil_moisture > 70
+        ? "text-red-500"
+        : "text-green-500"
+    }
+
+    Icon={Sprout}
+    iconColor="text-amber-700"
+  />
+
+  {/* SOIL PH */}
+  <KPICard
+    title="Soil pH"
+    value={Number(data.ph).toFixed(1)}
+    unit="pH"
+
+    status={
+      data.ph < 5.5
+        ? "Acidic"
+        : data.ph > 6.5
+        ? "Basic"
+        : "Neutral"
+    }
+
+    statusColor={
+      data.ph < 5.5
+        ? "text-red-500"
+        : data.ph > 6.5
+        ? "text-blue-500"
+        : "text-green-500"
+    }
+
+    Icon={FlaskConical}
+    iconColor="text-purple-500"
+  />
+
+  {/* TDS */}
+  <KPICard
+    title="TDS"
+    value={Math.round(data.tds).toString()}
+    unit="ppm"
+
+    status={
+      data.tds < 300
+        ? "Low"
+        : data.tds > 800
+        ? "High"
+        : "Normal"
+    }
+
+    statusColor={
+      data.tds < 300
+        ? "text-yellow-500"
+        : data.tds > 800
+        ? "text-red-500"
+        : "text-green-500"
+    }
+
+    Icon={Droplets}
+    iconColor="text-cyan-500"
+  />
+
+</div>
 
             {/* DASHBOARD */}
             {activePage === "Dashboard" && (
+
               <>
+              
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
+                  {/* GRAPH */}
                   <div className="lg:col-span-2">
                     <RealTimeChart data={chartData} />
                   </div>
 
-                  <div className="lg:col-span-1">
+                  {/* RIGHT SIDE */}
+                  <div className="lg:col-span-1 space-y-4">
+
                     <AIDiseaseDetection />
+
+                    {/* WATER PUMP */}
+                    <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+
+                      <div className="flex items-center gap-4">
+
+                        <div className="bg-cyan-50 p-3 rounded-xl">
+                          <Waves className="text-cyan-500 w-8 h-8" />
+                        </div>
+
+                        <div>
+
+                          <h3 className="text-lg font-semibold text-gray-800">
+                            Water Pump
+                          </h3>
+
+                          <p
+                            className={`font-bold text-lg ${
+                              data.pump === "ON"
+                                ? "text-green-500"
+                                : "text-red-500"
+                            }`}
+                          >
+                            {data.pump === "ON"
+                              ? "Running"
+                              : "Stopped"}
+                          </p>
+
+                        </div>
+
+                      </div>
+
+                    </div>
+
                   </div>
 
                 </div>
 
+                {/* ALERTS + SENSOR STATUS */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-                  <RecentAlerts />
+                  <RecentAlerts data={data} />
 
-                  <SensorStatus />
+                  <SensorStatus data={data} />
 
                 </div>
+
               </>
+
             )}
 
             {/* LIVE DATA */}
@@ -227,7 +329,7 @@ export default function DashboardPage() {
 
             {/* SENSORS */}
             {activePage === "Sensors" && (
-              <SensorStatus />
+              <SensorStatus data={data} />
             )}
 
             {/* AI */}
@@ -237,7 +339,7 @@ export default function DashboardPage() {
 
             {/* ALERTS */}
             {activePage === "Alerts" && (
-              <RecentAlerts />
+              <RecentAlerts data={data} />
             )}
 
           </div>
@@ -250,6 +352,9 @@ export default function DashboardPage() {
         </footer>
 
       </div>
+
     </div>
+
   );
 }
+

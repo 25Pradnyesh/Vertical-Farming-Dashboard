@@ -39,3 +39,27 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# AI Dataset
+ai server/dataset/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# ML models
+*.h5
+*.pt
+*.pth
+
+# AI datasets
+ai server/dataset/
+mlsrc/ai_model/dataset/
+
+# Firebase keys
+firebase_key.json
+*firebase*.json
+
+# Python
+__pycache__/
+*.pyc

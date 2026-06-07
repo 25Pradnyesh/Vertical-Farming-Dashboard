@@ -27,7 +27,10 @@ const TopNavbar = ({ toggleSidebar }: TopNavbarProps) => {
         </div>
 
         <div className="flex items-center justify-center p-2 rounded-full bg-green-50 text-green-600">
-          <Wifi className="w-5 h-5" />
+         <h1 className="text-2xl font-bold text-green-600 absolute left-1/2 -translate-x-1/2">
+  Advance Vertical Farming using AI and IOT
+</h1>
+ <Wifi className="w-5 h-5" />
         </div>
 
       </div>

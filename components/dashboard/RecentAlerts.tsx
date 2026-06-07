@@ -1,60 +1,98 @@
-import React from 'react';
-import { AlertTriangle, AlertCircle, CheckCircle } from 'lucide-react';
+"use client";
 
-const alerts = [
-  {
-    id: 1,
-    title: 'Soil Moisture is Low',
-    description: 'Irrigation recommended',
-    time: '10:28 AM',
-    type: 'critical',
-    Icon: AlertTriangle,
-  },
-  {
-    id: 2,
-    title: 'pH Level is Slightly Low',
-    description: 'Consider adding lime to soil',
-    time: '10:15 AM',
-    type: 'warning',
-    Icon: AlertCircle,
-  },
-  {
-    id: 3,
-    title: 'All parameters are normal',
-    description: 'Everything is in good condition',
-    time: '09:55 AM',
-    type: 'success',
-    Icon: CheckCircle,
-  },
-];
+import React from "react";
 
-const RecentAlerts = () => {
+import {
+  AlertTriangle,
+  CheckCircle,
+} from "lucide-react";
+
+const RecentAlerts = ({ data }: any) => {
+
+  const alerts = [];
+
+  // SOIL ALERT
+  if (data.soil_moisture < 40) {
+    alerts.push({
+      title: "Soil Moisture is Low",
+      message: "Irrigation recommended",
+      color: "text-red-500",
+      icon: AlertTriangle,
+    });
+  }
+
+  // PH ALERT
+  if (data.ph < 6.5) {
+    alerts.push({
+      title: "pH Level is Slightly Low",
+      message: "Consider adjusting nutrients",
+      color: "text-yellow-500",
+      icon: AlertTriangle,
+    });
+  }
+
+  // TEMP ALERT
+  if (data.temperature > 35) {
+    alerts.push({
+      title: "High Temperature Detected",
+      message: "Cooling required",
+      color: "text-red-500",
+      icon: AlertTriangle,
+    });
+  }
+
+  // ALL GOOD
+  if (alerts.length === 0) {
+    alerts.push({
+      title: "All parameters are normal",
+      message: "Everything is stable",
+      color: "text-green-500",
+      icon: CheckCircle,
+    });
+  }
+
   return (
-    <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm flex flex-col h-full">
-      <h3 className="text-lg font-semibold text-gray-800 mb-4">Recent Alerts</h3>
-      
-      <div className="flex flex-col gap-4 flex-1">
-        {alerts.map((alert) => (
-          <div key={alert.id} className="flex gap-4 items-start">
-            <div className={`mt-1 flex-shrink-0 ${
-              alert.type === 'critical' ? 'text-red-500' :
-              alert.type === 'warning' ? 'text-amber-500' :
-              'text-green-500'
-            }`}>
-              <alert.Icon className="w-6 h-6" fill="currentColor" stroke="white" />
+    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+
+      <h2 className="text-2xl font-bold text-gray-900 mb-6">
+        Recent Alerts
+      </h2>
+
+      <div className="space-y-6">
+
+        {alerts.map((alert: any, index) => {
+
+          const Icon = alert.icon;
+
+          return (
+            <div
+              key={index}
+              className="flex items-start gap-4"
+            >
+
+              <Icon
+                className={`${alert.color} mt-1`}
+                size={22}
+              />
+
+              <div>
+
+                <h3 className="font-semibold text-gray-900">
+                  {alert.title}
+                </h3>
+
+                <p className="text-gray-500 text-sm mt-1">
+                  {alert.message}
+                </p>
+
+              </div>
+
             </div>
-            <div className="flex-1">
-              <h4 className="text-sm font-semibold text-gray-900">{alert.title}</h4>
-              <p className="text-sm text-gray-500">{alert.description}</p>
-            </div>
-            <span className="text-xs text-gray-400 font-medium whitespace-nowrap mt-1">
-              {alert.time}
-            </span>
-          </div>
-        ))}
+          );
+        })}
+
       </div>
-      
-        </div>
+    </div>
   );
 };
 

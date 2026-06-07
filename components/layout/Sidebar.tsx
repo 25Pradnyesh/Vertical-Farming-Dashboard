@@ -60,9 +60,7 @@ const Sidebar = ({
 
       {/* LOGO */}
       <div className="h-20 flex items-center px-6 border-b border-green-900">
-        <h1 className="text-2xl font-bold text-green-400">
-          Smart Agriculture
-        </h1>
+
       </div>
 
       {/* NAVIGATION */}
